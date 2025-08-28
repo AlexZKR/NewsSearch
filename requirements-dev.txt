@@ -1,0 +1,6 @@
+ruff
+bandit
+mypy
+pytest
+pytest-cov
+pre-commit

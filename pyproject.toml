@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "NewsSearch"
+authors = [{ name = "Alex Zakrevsky", email = "zakrevskyalex1323@gmail.com" }]
+description = "A backend API that allows to query ES for news articles and front-end that allows to interact with it. Used data is provided by CC-News dataset."
+readme = "README.md"
+requires-python = ">=3.13.7"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies.dev = { file = ["requirements-dev.txt"] }
+
+[tool.setuptools_scm]
+# can be empty if no extra settings are needed, presence enables setuptools-scm
+
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "DEBUG"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = "newssearch"
+
+[tool.coverage.run]
+concurrency = ["greenlet", "thread"]
+omit = ["tests/*", "*/__init__.py", "*/config/*", "*/ports/*"]
+source = ["newssearch"]
+branch = true
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self\\.debug",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "pass",
+    "@(abc\\.)?abstractmethod",
+]
+ignore_errors = true
+
+[tool.ruff]
+line-length = 88
+lint.ignore = ["E501"]
+lint.select = ["E", "F", "I", "PL", "UP", "W"]
+exclude = ["migrations"]
+fix = true
+target-version = "py313"
+src = ["newssearch", "tests"]
+
+[tool.bandit]
+exclude_dirs = ["venv", "tests"]
