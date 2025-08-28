@@ -1,0 +1,7 @@
+fastapi
+typer
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+-r requirements-dev.txt

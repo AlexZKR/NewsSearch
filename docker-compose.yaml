@@ -1,0 +1,20 @@
+services:
+  newssearch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./newssearch:/home/newssearch
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env.defaults
+        required: true
+      - path: .env
+        required: false
+    command: python manage.py runserver
+    networks:
+      - news_default
+
+networks:
+  news_default:
