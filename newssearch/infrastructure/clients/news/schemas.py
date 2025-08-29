@@ -69,18 +69,14 @@ class WarcPathsFile(BaseModel):
     def parse_warc_paths_url(cls, url: str):
         """Parse the URL and init schema fields"""
         data: dict[str, Any] = {}
-        try:
-            url_path = parse.urlsplit(url=url).path.split("/")  # remove whitespace
+        url_path = parse.urlsplit(url=url).path.split("/")  # remove whitespace
 
-            # metadata
-            data["url"] = url
-            data["dataset"] = url_path[2]
-            data["year"] = url_path[3]
-            data["month"] = url_path[4]
+        # metadata
+        data["url"] = url
+        data["dataset"] = url_path[2]
+        data["year"] = url_path[3]
+        data["month"] = url_path[4]
 
-        except IndexError as exc:
-            logger.warning(f"Invalid WARC parhs URL: {url}. Error: {exc}")
-            return None
         return cls(**data)
 
     def parse_warc_filepaths(self, filepaths: list[str]):
