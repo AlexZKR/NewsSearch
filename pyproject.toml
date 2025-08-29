@@ -48,6 +48,7 @@ ignore_errors = true
 line-length = 88
 lint.ignore = ["E501"]
 lint.select = ["E", "F", "I", "PL", "UP", "W"]
+lint.extend-select = ["I"]
 exclude = ["migrations"]
 fix = true
 target-version = "py313"

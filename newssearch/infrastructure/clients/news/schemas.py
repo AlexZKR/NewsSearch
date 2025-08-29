@@ -1,0 +1,94 @@
+from logging import getLogger
+from typing import Any
+from urllib import parse
+
+from pydantic import BaseModel, Field
+
+from newssearch.infrastructure.clients.news.enums import CCDataSet
+
+logger = getLogger(__name__)
+
+WARC_EXT_SUFFIX = ".warc.gz"
+
+
+class WarcPathSchema(BaseModel):
+    """WARC filename, parsed from WarcPathsFile
+
+    Example of one filename:
+    'crawl-data/CC-NEWS/2025/01/CC-NEWS-20250101020153-00156.warc.gz'
+    """
+
+    filepath: str = Field(..., description="Original filepath")
+
+    dataset: CCDataSet
+    year: str
+    month: str
+    timestamp: str
+    id: str
+
+    @classmethod
+    def parse_warc_path(cls, filepath: str):
+        """Parse the filename and init schema fields"""
+        data: dict[str, Any] = {}
+        try:
+            parts = filepath.removesuffix(WARC_EXT_SUFFIX).split("/")
+
+            # metadata
+            data["filepath"] = filepath
+            data["dataset"] = parts[1]
+            data["year"] = parts[2]
+            data["month"] = parts[3]
+
+            # file identificators
+            ids = parts[4].split("-")
+            data["timestamp"] = ids[2]
+            data["id"] = ids[3]
+
+        except IndexError as exc:
+            logger.warning(f"Invalid WARC filepath: {filepath}. Error: {exc}")
+            return None
+        return cls(**data)
+
+
+class WarcPathsFile(BaseModel):
+    """WARC file listings by month
+
+    Example of URL:
+    https://data.commoncrawl.org/crawl-data/CC-NEWS/2024/01/warc.paths.gz
+
+    """
+
+    url: str = Field(..., description="URL of paths file")
+
+    dataset: CCDataSet
+    year: str
+    month: str
+    filepaths: list[WarcPathSchema] | None = None
+
+    @classmethod
+    def parse_warc_paths_url(cls, url: str):
+        """Parse the URL and init schema fields"""
+        data: dict[str, Any] = {}
+        try:
+            url_path = parse.urlsplit(url=url).path.split("/")  # remove whitespace
+
+            # metadata
+            data["url"] = url
+            data["dataset"] = url_path[2]
+            data["year"] = url_path[3]
+            data["month"] = url_path[4]
+
+        except IndexError as exc:
+            logger.warning(f"Invalid WARC parhs URL: {url}. Error: {exc}")
+            return None
+        return cls(**data)
+
+    def parse_warc_filepaths(self, filepaths: list[str]):
+        """Fill filepaths field, filtering out invalid paths"""
+        parsed_paths = []
+        for filepath in filepaths:
+            parsed = WarcPathSchema.parse_warc_path(filepath)
+            if parsed is not None:
+                parsed_paths.append(parsed)
+
+        self.filepaths = parsed_paths if parsed_paths else None

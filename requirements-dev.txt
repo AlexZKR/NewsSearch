@@ -3,4 +3,5 @@ bandit
 mypy
 pytest
 pytest-cov
+pytest-asyncio
 pre-commit
