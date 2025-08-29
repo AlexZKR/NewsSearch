@@ -27,6 +27,26 @@ class HTTPTransportSettings(BaseSettings):
     default_timeout: int = 30
     default_chunk_size: int = 8192
 
+
+class NewsClientSettings(BaseSettings):
+    user_agent: str = "NewsSearch/1.0 pet-project"
+
+    base_url: str = "http://data.commoncrawl.org/crawl-data/CC-NEWS"
+    file_url_path: str = "/{yyyy}/{mm}/CC-NEWS-{timestamp}-{id}.warc.gz"
+    paths_url_path: str = "/{yyyy}/{mm}/warc.paths.gz"
+
+    @property
+    @computed_field
+    def paths_url(self) -> str:
+        return self.base_url + self.paths_url_path
+
+    @property
+    @computed_field
+    def file_url(self) -> str:
+        return self.base_url + self.file_url_path
+
+
 class Settings(BaseSettings):
     UVICORN_SETTINGS: UvicornSettings = UvicornSettings()
     HTTP_TRANSPORT_SETTINGS: HTTPTransportSettings = HTTPTransportSettings()
+    NEWS_CLIENT_SETTINGS: NewsClientSettings = NewsClientSettings()

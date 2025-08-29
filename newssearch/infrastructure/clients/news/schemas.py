@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Any
 from urllib import parse
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from newssearch.infrastructure.clients.news.enums import CCDataSet
 
@@ -63,7 +63,7 @@ class WarcPathsFile(BaseModel):
     dataset: CCDataSet
     year: str
     month: str
-    filepaths: list[WarcPathSchema] | None = None
+    filepaths: list[WarcPathSchema] = Field(default_factory=list)
 
     @classmethod
     def parse_warc_paths_url(cls, url: str):
@@ -91,4 +91,10 @@ class WarcPathsFile(BaseModel):
             if parsed is not None:
                 parsed_paths.append(parsed)
 
-        self.filepaths = parsed_paths if parsed_paths else None
+        self.filepaths = parsed_paths
+
+    @property
+    @computed_field
+    def id_range(self) -> str:
+        """Get first and last ID's of WARC files in this paths file."""
+        return f"{self.filepaths[0].id} - {self.filepaths[-1].id}"
