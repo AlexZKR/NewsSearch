@@ -1,3 +1,5 @@
+import urllib3
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,5 +18,15 @@ class UvicornSettings(BaseSettings):
     limit_max_requests: int | None = None
 
 
+class HTTPTransportSettings(BaseSettings):
+    max_retries: int = 3
+    backoff_factor: float = 0.1
+    max_backoff: int = 120
+    status_forcelist: list[int] = [404, 413, 429, 502, 503, 504]
+    allowed_methods: frozenset[str] = urllib3.Retry.DEFAULT_ALLOWED_METHODS
+    default_timeout: int = 30
+    default_chunk_size: int = 8192
+
 class Settings(BaseSettings):
     UVICORN_SETTINGS: UvicornSettings = UvicornSettings()
+    HTTP_TRANSPORT_SETTINGS: HTTPTransportSettings = HTTPTransportSettings()
