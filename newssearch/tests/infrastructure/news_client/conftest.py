@@ -10,10 +10,15 @@ from newssearch.infrastructure.transport.requests_transport import AbstractHTTPT
 def transport(request: pytest.FixtureRequest) -> MagicMock:
     mock = MagicMock(spec=AbstractHTTPTransport)
 
-    if "returns" in request.param:
-        mock.request.return_value = request.param["returns"]
-    if "raises" in request.param:
-        mock.request.side_effect = request.param["raises"]
+    if "request_returns" in request.param:
+        mock.request.return_value = request.param["request_returns"]
+    if "request_raises" in request.param:
+        mock.request.side_effect = request.param["request_raises"]
+
+    if "stream_returns" in request.param:
+        mock.stream.return_value = request.param["stream_returns"]
+    if "stream_raises" in request.param:
+        mock.stream.side_effect = request.param["stream_raises"]
     return mock
 
 

@@ -16,7 +16,7 @@ from newssearch.tests.infrastructure.news_client.testdata import (
     [
         pytest.param(
             {
-                "returns": gzip.compress(
+                "request_returns": gzip.compress(
                     "\n".join([VALID_WARC_FILENAME, INVALID_WARC_FILENAME]).encode()
                 )
             },

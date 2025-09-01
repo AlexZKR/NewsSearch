@@ -27,7 +27,7 @@ pythonpath = "newssearch"
 
 [tool.coverage.run]
 concurrency = ["thread"]
-omit = ["tests/*", "*/__init__.py", "*/config/*", "*/ports/*"]
+omit = ["newssearch/tests/*", "*/__init__.py", "*/config/*", "*/ports/*"]
 source = ["newssearch"]
 branch = true
 

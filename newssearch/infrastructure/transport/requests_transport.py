@@ -11,6 +11,7 @@ from urllib3 import Retry
 from newssearch.config.settings import HTTPTransportSettings
 from newssearch.infrastructure.transport.base import AbstractHTTPTransport
 from newssearch.infrastructure.transport.exceptions import (
+    BaseTransportException,
     ClientError,
     ServerError,
 )
@@ -39,8 +40,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
                 response = s.send(request, stream=True)
                 yield from response.iter_content(chunk_size=self.settings.default_chunk)
         except requests.RequestException as exc:
-            self._handle_requests_exception(exc)
-            raise
+            raise self._handle_requests_exception(exc)
 
     def request(self, data: HTTPRequestData) -> ResponseContent:
         try:
@@ -50,8 +50,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
 
                 return self._handle_response(response)
         except requests.RequestException as exc:
-            self._handle_requests_exception(exc)
-            raise
+            raise self._handle_requests_exception(exc)
 
     def _prepare_request(self, data: HTTPRequestData) -> requests.Request:
         return requests.Request(
@@ -63,23 +62,27 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         try:
             response.raise_for_status()
         except requests.HTTPError as exc:
-            self._handle_HTTP_error(exc, content)
+            raise self._handle_HTTP_error(exc, content)
         return content
 
-    def _handle_requests_exception(self, exc: requests.RequestException):
+    def _handle_requests_exception(
+        self, exc: requests.RequestException
+    ) -> BaseTransportException:
         """Handle retry exception, raised in request or stream func"""
-        if exc.response:
+        if exc.response is not None:
             content = self._parse_content(exc.response)
-            raise ClientError(status=exc.response.status_code, response=content)
+            return ClientError(status=exc.response.status_code, response=content)
         else:
-            raise ClientError(message=str(exc))
+            return ClientError(message=str(exc))
 
-    def _handle_HTTP_error(self, exc: requests.HTTPError, content: ResponseContent):
+    def _handle_HTTP_error(
+        self, exc: requests.HTTPError, content: ResponseContent
+    ) -> ServerError | ClientError:
         status = exc.response.status_code
         exception_class = (
             ServerError if status >= HTTPStatus.INTERNAL_SERVER_ERROR else ClientError
         )
-        raise exception_class(status=status, response=content)
+        return exception_class(status=status, response=content)
 
     def _parse_content(self, response: requests.Response) -> str | Any:
         match response.headers.get("content-type"):
@@ -93,7 +96,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
 
     @property
     def _session(self) -> requests.Session:
-        if self.session:
+        if self.session:  # pragma: nocover
             return self.session
 
         retry_obj: Retry = Retry(
