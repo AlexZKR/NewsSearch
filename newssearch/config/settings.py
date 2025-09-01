@@ -35,13 +35,13 @@ class NewsClientSettings(BaseSettings):
     file_url_path: str = "/{yyyy}/{mm}/CC-NEWS-{timestamp}-{id}.warc.gz"
     paths_url_path: str = "/{yyyy}/{mm}/warc.paths.gz"
 
+    @computed_field  # type: ignore [prop-decorator]
     @property
-    @computed_field
     def paths_url(self) -> str:
         return self.base_url + self.paths_url_path
 
+    @computed_field  # type: ignore [prop-decorator]
     @property
-    @computed_field
     def file_url(self) -> str:
         return self.base_url + self.file_url_path
 

@@ -89,8 +89,8 @@ class WarcPathsFile(BaseModel):
 
         self.filepaths = parsed_paths
 
+    @computed_field  # type: ignore [prop-decorator]
     @property
-    @computed_field
     def id_range(self) -> str:
         """Get first and last ID's of WARC files in this paths file."""
         return f"{self.filepaths[0].id} - {self.filepaths[-1].id}"
