@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from newssearch.infrastructure.clients.news.news_client import NewsClient
-from newssearch.infrastructure.transport.base_transport import AbstractHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import AbstractHTTPTransport
 
 
 @pytest.fixture()

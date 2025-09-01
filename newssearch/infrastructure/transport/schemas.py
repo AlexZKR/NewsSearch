@@ -18,4 +18,3 @@ class HTTPRequestData(BaseModel):
     url: str
     params: dict[str, Any] | None = None
     headers: dict[str, Any] | None = None
-    allow_redirects: bool = True

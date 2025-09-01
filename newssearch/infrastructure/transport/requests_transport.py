@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from http import HTTPStatus
 from logging import getLogger
 from typing import Any
@@ -8,6 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 from newssearch.config.settings import HTTPTransportSettings
+from newssearch.infrastructure.transport.base import AbstractHTTPTransport
 from newssearch.infrastructure.transport.exceptions import (
     ClientError,
     ServerError,
@@ -21,14 +21,6 @@ from newssearch.infrastructure.transport.schemas import (
 logger = getLogger(__name__)
 
 
-class AbstractHTTPTransport(ABC):
-    @abstractmethod
-    def request(self, data: HTTPRequestData) -> ResponseContent: ...
-
-    @abstractmethod
-    def stream(self, data: HTTPRequestData) -> None: ...
-
-
 class BaseHTTPTransport(AbstractHTTPTransport):
     """Based on requests, for sync calls. Has retry, back-off support"""
 
@@ -38,18 +30,12 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         self.settings = settings
         self.session: requests.Session | None = None
 
-    # TODO: make use of prepare_request to reuse request logic in request and stream!
     def stream(self, data: HTTPRequestData) -> None:
         try:
             with self._session as s:
-                response = s.request(
-                    method=data.method,
-                    url=data.url,
-                    params=data.params,
-                    headers=data.headers,
-                    allow_redirects=data.allow_redirects,
-                    stream=True,
-                )
+                request = self._prepare_request(data).prepare()
+                response = s.send(request, stream=True)
+
                 with open("warc.warc", "wb") as fd:
                     for chunk in response.iter_content(
                         chunk_size=self.settings.default_chunk_size
@@ -63,17 +49,18 @@ class BaseHTTPTransport(AbstractHTTPTransport):
     def request(self, data: HTTPRequestData) -> ResponseContent:
         try:
             with self._session as s:
-                response = s.request(
-                    method=data.method,
-                    url=data.url,
-                    params=data.params,
-                    headers=data.headers,
-                    allow_redirects=data.allow_redirects,
-                )
+                request = self._prepare_request(data).prepare()
+                response = s.send(request)
+
                 return self._handle_response(response)
         except requests.RequestException as exc:
             self._handle_requests_exception(exc)
             raise
+
+    def _prepare_request(self, data: HTTPRequestData) -> requests.Request:
+        return requests.Request(
+            method=data.method, url=data.url, headers=data.headers, params=data.params
+        )
 
     def _handle_response(self, response: requests.Response) -> ResponseContent:
         content = self._parse_content(response)
@@ -128,24 +115,3 @@ class BaseHTTPTransport(AbstractHTTPTransport):
 
         self.session = s
         return self.session
-
-    # def get(self, url, **kwargs) -> bytes:
-    #     """Base method for HTTP GET"""
-    #     with self._session as s:
-    #         response = s.get(url, **kwargs)
-    #         if response.status_code == http.HTTPStatus.NOT_FOUND:
-    #             raise NotFoundException(url)
-    #         return response.content
-
-    # def get_streaming(self, url: str, **kwargs):
-    #     """Base method for HTTP GET streaming
-
-    #     Uses stream=True for iterating over large responses.
-    #     """
-    #     with self._session as s:
-    #         logger.info(f"Performing GET for {url}")
-    #         with s.get(
-    #             url, timeout=self.settings.default_timeout, stream=True, **kwargs
-    #         ) as r:
-    #             logger.info(f"content-length: {r.headers.get('content-length')}")
-    #             yield r.iter_content(self.settings.default_chunk_size)

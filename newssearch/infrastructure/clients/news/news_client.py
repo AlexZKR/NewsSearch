@@ -10,11 +10,11 @@ from newssearch.infrastructure.clients.news.exceptions import (
     NewsClientError,
 )
 from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
-from newssearch.infrastructure.transport.base_transport import (
+from newssearch.infrastructure.transport.exceptions import BaseTransportException
+from newssearch.infrastructure.transport.requests_transport import (
     BaseHTTPTransport,
     HTTPRequestData,
 )
-from newssearch.infrastructure.transport.exceptions import BaseTransportException
 from newssearch.infrastructure.transport.schemas import ResponseContent
 
 logger = getLogger(__name__)

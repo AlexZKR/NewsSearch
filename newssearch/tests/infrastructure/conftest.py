@@ -1,6 +1,6 @@
 import pytest
 
-from newssearch.infrastructure.transport.base_transport import BaseHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 
 
 @pytest.fixture()

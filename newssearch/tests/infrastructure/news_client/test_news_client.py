@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 
 from newssearch.infrastructure.clients.news.news_client import NewsClient
-from newssearch.infrastructure.transport.base_transport import BaseHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 from newssearch.tests.infrastructure.news_client.testdata import (
     INVALID_WARC_FILENAME,
     VALID_WARC_FILENAME,
