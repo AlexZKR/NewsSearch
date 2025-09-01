@@ -25,7 +25,7 @@ class HTTPTransportSettings(BaseSettings):
     status_forcelist: list[int] = [404, 413, 429, 502, 503, 504]
     allowed_methods: frozenset[str] = urllib3.Retry.DEFAULT_ALLOWED_METHODS
     default_timeout: int = 30
-    default_chunk: int = 8192
+    chunk_size: int = 8192
 
 
 class NewsClientSettings(BaseSettings):

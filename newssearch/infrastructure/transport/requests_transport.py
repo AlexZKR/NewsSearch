@@ -1,5 +1,4 @@
-from binascii import Incomplete
-from collections.abc import Generator
+from collections.abc import Iterator
 from http import HTTPStatus
 from logging import getLogger
 from typing import Any
@@ -33,12 +32,12 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         self.settings = settings
         self.session: requests.Session | None = None
 
-    def stream(self, data: HTTPRequestData) -> Generator[Incomplete]:
+    def stream(self, data: HTTPRequestData) -> Iterator[bytes]:
         try:
             with self._session as s:
                 request = self._prepare_request(data).prepare()
                 response = s.send(request, stream=True)
-                yield from response.iter_content(chunk_size=self.settings.default_chunk)
+                yield from response.iter_content(chunk_size=self.settings.chunk_size)
         except requests.RequestException as exc:
             raise self._handle_requests_exception(exc)
 

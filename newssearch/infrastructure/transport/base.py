@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from binascii import Incomplete
-from collections.abc import Generator
+from collections.abc import Iterator
 
 from newssearch.infrastructure.transport.schemas import HTTPRequestData, ResponseContent
 
@@ -10,4 +9,4 @@ class AbstractHTTPTransport(ABC):
     def request(self, data: HTTPRequestData) -> ResponseContent: ...
 
     @abstractmethod
-    def stream(self, data: HTTPRequestData) -> Generator[Incomplete]: ...
+    def stream(self, data: HTTPRequestData) -> Iterator[bytes]: ...

@@ -1,34 +1,15 @@
-import json
-from http import HTTPMethod
-
 import pytest
 import requests
-from requests import Response
 
-from newssearch.infrastructure.transport.base import AbstractHTTPTransport
 from newssearch.infrastructure.transport.exceptions import ClientError, ServerError
+from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 from newssearch.infrastructure.transport.schemas import ContentTypeEnum, HTTPRequestData
-
-EXP_RESPONSE_TXT = "test_text"
-EXP_RESPONSE_JSON = json.dumps({"txt": EXP_RESPONSE_TXT})
-
-
-def get_request_data_text() -> HTTPRequestData:
-    return HTTPRequestData(method=HTTPMethod.GET, url="https://test.com")
-
-
-def get_exp_response(
-    content_type: ContentTypeEnum | None = None,
-    content: str | None = None,
-    status_code: int = 200,
-) -> Response:
-    r = Response()
-    r.status_code = status_code
-    if content:
-        r._content = content.encode()
-    if content_type:
-        r.headers["content-type"] = content_type.value
-    return r
+from newssearch.tests.infrastructure.transport.conftest import (
+    EXP_RESPONSE_JSON,
+    EXP_RESPONSE_TXT,
+    get_exp_response,
+    get_request_data_text,
+)
 
 
 @pytest.mark.parametrize(
@@ -75,7 +56,7 @@ def get_exp_response(
     indirect=["mock_session"],
 )
 def test_request_ok(
-    transport: AbstractHTTPTransport,
+    transport: BaseHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_response,
@@ -117,7 +98,7 @@ def test_request_ok(
     indirect=["mock_session"],
 )
 def test_request_raise_for_status_exc(
-    transport: AbstractHTTPTransport,
+    transport: BaseHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,
@@ -157,7 +138,7 @@ def test_request_raise_for_status_exc(
     indirect=["mock_session"],
 )
 def test_request_retry_exc(
-    transport: AbstractHTTPTransport,
+    transport: BaseHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,
