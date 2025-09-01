@@ -4,6 +4,7 @@ from urllib import parse
 
 from pydantic import BaseModel, Field, computed_field
 
+from newssearch.config import settings
 from newssearch.infrastructure.clients.news.enums import CCDataSet
 
 logger = getLogger(__name__)
@@ -49,6 +50,9 @@ class WarcPathSchema(BaseModel):
             return None
         return cls(**data)
 
+    def __str__(self) -> str:
+        return f"{self.year}/{self.month} - {self.timestamp} - {self.id}"
+
 
 class WarcPathsFile(BaseModel):
     """WARC file listings by month
@@ -91,6 +95,37 @@ class WarcPathsFile(BaseModel):
 
     @computed_field  # type: ignore [prop-decorator]
     @property
-    def id_range(self) -> str:
+    def id_range(self) -> str:  # pragma: nocover
         """Get first and last ID's of WARC files in this paths file."""
-        return f"{self.filepaths[0].id} - {self.filepaths[-1].id}"
+        first = f"{self.filepaths[0].id}"
+        last = ""
+        if self.filepaths[-1].id != self.filepaths[0].id:
+            last = f" - {self.filepaths[-1].id}"
+        return first + last if last else first
+
+    def table_output(self) -> str:  # pragma: nocover
+        if not self.filepaths:
+            return "No WARC filepaths."
+        table_len = settings.NEWS_ETL_SETTINGS.warc_paths_table_length
+
+        rows = [
+            (f"{p.year}/{p.month}", p.timestamp, p.id)
+            for p in self.filepaths[:table_len]
+        ]
+
+        header = ("Date", "Timestamp", "ID")
+        w0, w1, w2 = (max(len(x) for x in col) for col in zip(*([header] + rows)))
+        fmt = f"{{:<{w0}}}  {{:<{w1}}}  {{:>{w2}}}"
+
+        lines = [fmt.format(*header)] + [fmt.format(*r) for r in rows]
+
+        len_title = (
+            f"First {table_len}"
+            if len(self.filepaths) > table_len
+            else f"First {len(self.filepaths)}"
+        )
+
+        result = f"{len_title} WARC filepaths:\n" + "\n".join(lines)
+        if len(self.filepaths) > table_len:
+            result += f"\n...{len(self.filepaths) - table_len} more"
+        return result

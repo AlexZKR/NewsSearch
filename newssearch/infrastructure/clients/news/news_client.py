@@ -1,11 +1,12 @@
 import gzip
 from datetime import date
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
 from logging import getLogger
 from typing import cast
 
 from newssearch.config.settings import NewsClientSettings
 from newssearch.infrastructure.clients.news.exceptions import (
+    FileNotFound,
     IDDoesntExistInPaths,
     NewsClientError,
 )
@@ -83,9 +84,6 @@ class NewsClient:
 
         schema.parse_warc_filepaths(data.splitlines())
         logger.info(f"Got {len(schema.filepaths)} paths")
-        logger.info(
-            f"ID ranges (use them to download a subset of paths): {schema.id_range}"
-        )
 
         return schema
 
@@ -106,6 +104,8 @@ class NewsClient:
         try:
             return self.transport.request(data)
         except BaseTransportException as exc:
+            if exc.status_code == HTTPStatus.NOT_FOUND:
+                raise FileNotFound
             raise NewsClientError(exc) from exc
 
     def _try_stream_request(self, data: HTTPRequestData):

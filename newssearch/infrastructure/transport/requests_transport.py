@@ -70,7 +70,11 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         """Handle retry exception, raised in request or stream func"""
         if exc.response is not None:
             content = self._parse_content(exc.response)
-            return ClientError(status=exc.response.status_code, response=content)
+            return ClientError(
+                status=exc.response.status_code,
+                response=content,
+                message=exc.response.reason,
+            )
         else:
             return ClientError(message=str(exc))
 

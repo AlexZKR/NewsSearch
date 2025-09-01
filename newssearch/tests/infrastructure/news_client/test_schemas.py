@@ -15,10 +15,9 @@ def get_expected_paths_schema() -> WarcPathsFile:
 
 
 def test_warc_file_ok():
-    assert (
-        WarcPathSchema.parse_warc_path(filepath=VALID_WARC_FILENAME)
-        == get_expected_warc_filename_schema()
-    )
+    file = WarcPathSchema.parse_warc_path(filepath=VALID_WARC_FILENAME)
+    assert file == get_expected_warc_filename_schema()
+    assert str(file) == "2025/07 - 20250701004326 - 02814"
 
 
 def test_warc_file_fail():

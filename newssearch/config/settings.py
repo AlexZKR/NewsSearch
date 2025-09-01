@@ -22,7 +22,7 @@ class HTTPTransportSettings(BaseSettings):
     max_retries: int = 3
     backoff_factor: float = 0.1
     max_backoff: int = 120
-    status_forcelist: list[int] = [404, 413, 429, 502, 503, 504]
+    status_forcelist: list[int] = [413, 429, 502, 503, 504]
     allowed_methods: frozenset[str] = urllib3.Retry.DEFAULT_ALLOWED_METHODS
     default_timeout: int = 30
     chunk_size: int = 8192
@@ -46,7 +46,13 @@ class NewsClientSettings(BaseSettings):
         return self.base_url + self.file_url_path
 
 
+class NewsETLSettings(BaseSettings):
+    date_format: str = "%Y/%m"
+    warc_paths_table_length: int = 10
+
+
 class Settings(BaseSettings):
     UVICORN_SETTINGS: UvicornSettings = UvicornSettings()
     HTTP_TRANSPORT_SETTINGS: HTTPTransportSettings = HTTPTransportSettings()
     NEWS_CLIENT_SETTINGS: NewsClientSettings = NewsClientSettings()
+    NEWS_ETL_SETTINGS: NewsETLSettings = NewsETLSettings()
