@@ -9,4 +9,9 @@ class AbstractHTTPTransport(ABC):
     def request(self, data: HTTPRequestData) -> ResponseContent: ...
 
     @abstractmethod
-    def stream(self, data: HTTPRequestData) -> Iterator[bytes]: ...
+    def stream(self, data: HTTPRequestData) -> tuple[int, Iterator[bytes]]:
+        """Streaming request
+
+        Returns:
+            tuple[int, Iterator[bytes]]: content-length, iterator
+        """

@@ -4,6 +4,8 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 requests
-
-
+tqdm
+warcio
+trafilatura[all]
+lxml_html_clean
 -r requirements-dev.txt

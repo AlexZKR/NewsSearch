@@ -50,6 +50,8 @@ class NewsETLSettings(BaseSettings):
     date_format: str = "%Y/%m"
     warc_paths_table_length: int = 10
 
+    max_workers: int = 3
+
 
 class Settings(BaseSettings):
     UVICORN_SETTINGS: UvicornSettings = UvicornSettings()

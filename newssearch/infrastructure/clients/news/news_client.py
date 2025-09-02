@@ -1,13 +1,15 @@
 import gzip
+from collections.abc import Iterator
 from datetime import date
 from http import HTTPMethod, HTTPStatus
 from logging import getLogger
 from typing import cast
 
+from tqdm import tqdm
+
 from newssearch.config.settings import NewsClientSettings
 from newssearch.infrastructure.clients.news.exceptions import (
     FileNotFound,
-    IDDoesntExistInPaths,
     NewsClientError,
 )
 from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
@@ -41,36 +43,24 @@ class NewsClient:
         self.transport = transport
         self.settings = settings
 
-    def download_warc(self, year_month: date, start_id: str, range: int = 0):
-        """Download one or multiple WARC files.
+    def download_warc(self, file: WarcPathSchema) -> Iterator[bytes]:
+        """Download one WARC file."""
+        url = self.__get_file_url(file)
+        content_len, iterator = self.transport.stream(
+            data=HTTPRequestData(method=HTTPMethod.GET, url=url)
+        )
 
-        Args:
-            year_month (date): year and month of paths file.
-            start_id (str): ID of first WARC to donwload.
-            end_id (str | None, optional): ID of last WARC to download. If not specifed, then download only start_id. Defaults to None.
-        """
-        paths_file = self.get_paths_file(year_month)
-
-        start_index = None
-        for fp in paths_file.filepaths:
-            if fp.id == start_id:
-                start_index = paths_file.filepaths.index(fp)
-
-        if start_index is None:
-            raise IDDoesntExistInPaths(
-                f"ID: {start_id} doesn't exist in path range {paths_file.id_range}"
-            )
-
-        # handle range that is larger than paths file length
-        if start_index + range > len(paths_file.filepaths):
-            range = len(paths_file.filepaths) - 1
-
-        # handle range < 0
-        range = max(range, 0)
-
-        logger.info(f"Downloading {start_index + range} WARC files.")
-        url = self.__get_file_url(paths_file.filepaths[start_index])
-        self.transport.stream(data=HTTPRequestData(method=HTTPMethod.GET, url=url))
+        with tqdm(
+            total=content_len,
+            unit="B",
+            unit_scale=True,
+            desc=f"Downloading file {file.id}",
+            position=0,
+        ) as pbar:
+            for chunk in iterator:
+                if chunk:
+                    yield chunk
+                    pbar.update(len(chunk))
 
     def get_paths_file(self, year_month: date) -> WarcPathsFile:
         """Download file which contains WARC filepaths"""
@@ -91,6 +81,9 @@ class NewsClient:
         return self.settings.paths_url.format(
             yyyy=year_month.strftime("%Y"), mm=year_month.strftime("%m")
         )
+
+    def prepare_urls(self, files: list[WarcPathSchema]) -> list[str]:
+        return [self.__get_file_url(f) for f in files]
 
     def __get_file_url(self, file: WarcPathSchema) -> str:
         return self.settings.file_url.format(

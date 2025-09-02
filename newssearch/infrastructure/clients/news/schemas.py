@@ -12,6 +12,10 @@ logger = getLogger(__name__)
 WARC_EXT_SUFFIX = ".warc.gz"
 
 
+class WARCInputSchema(BaseModel):
+    pass
+
+
 class WarcPathSchema(BaseModel):
     """WARC filename, parsed from WarcPathsFile
 

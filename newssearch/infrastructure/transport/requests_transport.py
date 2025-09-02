@@ -32,12 +32,14 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         self.settings = settings
         self.session: requests.Session | None = None
 
-    def stream(self, data: HTTPRequestData) -> Iterator[bytes]:
+    def stream(self, data: HTTPRequestData) -> tuple[int, Iterator[bytes]]:
         try:
             with self._session as s:
                 request = self._prepare_request(data).prepare()
                 response = s.send(request, stream=True)
-                yield from response.iter_content(chunk_size=self.settings.chunk_size)
+                iterator = response.iter_content(chunk_size=self.settings.chunk_size)
+                content_len = int(response.headers.get("content-length", 0))
+                return content_len, iterator
         except requests.RequestException as exc:
             raise self._handle_requests_exception(exc)
 
