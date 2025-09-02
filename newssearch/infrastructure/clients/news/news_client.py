@@ -5,8 +5,6 @@ from http import HTTPMethod, HTTPStatus
 from logging import getLogger
 from typing import cast
 
-from tqdm import tqdm
-
 from newssearch.config.settings import NewsClientSettings
 from newssearch.infrastructure.clients.news.exceptions import (
     FileNotFound,
@@ -19,6 +17,7 @@ from newssearch.infrastructure.transport.requests_transport import (
     HTTPRequestData,
 )
 from newssearch.infrastructure.transport.schemas import ResponseContent
+from newssearch.tasks.news_etl.utils import get_tqdm
 
 logger = getLogger(__name__)
 
@@ -43,20 +42,14 @@ class NewsClient:
         self.transport = transport
         self.settings = settings
 
-    def download_warc(self, file: WarcPathSchema) -> Iterator[bytes]:
+    def download_warc(self, file: WarcPathSchema, pos: int) -> Iterator[bytes]:
         """Download one WARC file."""
         url = self.__get_file_url(file)
-        content_len, iterator = self.transport.stream(
+        content_len, iterator = self._try_stream_request(
             data=HTTPRequestData(method=HTTPMethod.GET, url=url)
         )
 
-        with tqdm(
-            total=content_len,
-            unit="B",
-            unit_scale=True,
-            desc=f"Downloading file {file.id}",
-            position=0,
-        ) as pbar:
+        with get_tqdm(msg=f"Downloading {file.id}", total=content_len, pos=pos) as pbar:
             for chunk in iterator:
                 if chunk:
                     yield chunk
@@ -101,8 +94,8 @@ class NewsClient:
                 raise FileNotFound
             raise NewsClientError(exc) from exc
 
-    def _try_stream_request(self, data: HTTPRequestData):
+    def _try_stream_request(self, data: HTTPRequestData) -> tuple[int, Iterator[bytes]]:
         try:
-            self.transport.stream(data)
+            return self.transport.stream(data)
         except BaseTransportException as exc:
             raise NewsClientError(exc) from exc

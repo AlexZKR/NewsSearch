@@ -35,9 +35,11 @@ def test_stream_ok(
     exp_response,
 ) -> None:
     resp = b""
-    for r in transport.stream(request_data):
+    size, iterator = transport.stream(request_data)
+    for r in iterator:
         resp += r
     assert resp == exp_response
+    assert size == len(resp)
 
 
 @pytest.mark.parametrize(
@@ -77,7 +79,8 @@ def test_stream_retry_exc(
 ) -> None:
     with pytest.raises(exp_exception) as exc:
         result = b""
-        for r in transport.stream(request_data):
+        size, iterator = transport.stream(request_data)
+        for r in iterator:
             result += r
     if resp := exc.value.response:
         assert resp == exp_msg

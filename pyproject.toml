@@ -56,3 +56,10 @@ src = ["newssearch", "tests"]
 
 [tool.bandit]
 exclude_dirs = ["venv", "tests"]
+
+[tool.mypy]
+exclude = '(?x)^(venv|\.venv|build|dist|\.mypy_cache)/'
+
+[[tool.mypy.overrides]]
+module = "warcio.*"
+ignore_missing_imports = true

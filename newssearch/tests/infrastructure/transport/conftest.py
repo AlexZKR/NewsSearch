@@ -29,6 +29,7 @@ def get_exp_response(
         data = content.encode()
         r._content = data
         r.raw = BytesIO(data)
+        r.headers["content-length"] = str(len(data))
     if content_type:
         r.headers["content-type"] = content_type.value
     return r
