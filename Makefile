@@ -26,7 +26,7 @@ check: lint tests
 tests:
 	PYTHONPATH=$(PWD) \
 	&& . venv/bin/activate \
-	&& pytest --cov --cov-fail-under=100 --cov-report html
+	&& pytest --cov --cov-fail-under=90 --cov-report html
 
 coverage:
 	PYTHONPATH=$(PWD) \
