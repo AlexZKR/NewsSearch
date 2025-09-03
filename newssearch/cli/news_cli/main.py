@@ -31,7 +31,7 @@ def main(
         \n\nYou have entered year and month: {format_year_month(date=year_month)} \
         \n\nNow the app will query CC-NEWS to see, if any news are available for this date.\n"
     )
-    paths_file = ETL.get_paths_file(year_month)
+    paths_file = ETL.client.get_paths_file(year_month)
     if not paths_file:
         typer.echo("Try once again with another date!")
         typer.Exit(-1)

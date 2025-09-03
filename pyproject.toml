@@ -33,6 +33,7 @@ omit = [
     "*/config/*",
     "*/ports/*",
     "newssearch/cli/news_cli/main.py",
+    "manage.py",
 ]
 source = ["newssearch"]
 branch = true

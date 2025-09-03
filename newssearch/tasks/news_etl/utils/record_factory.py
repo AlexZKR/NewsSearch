@@ -10,6 +10,15 @@ from newssearch.tasks.news_etl.schemas import RecordContentSchema, WARCRecordSch
 logger = getLogger(__name__)
 
 
+def is_record_valid(record: ArcWarcRecord):
+    if (
+        record.rec_type == "response"
+        and record.http_headers.get_header("Content-Type") == "text/html"
+    ):
+        return True
+    return False
+
+
 def process_record(record: ArcWarcRecord):
     return WARCRecordSchema(
         id=record.rec_headers.get_header("WARC-Record-ID"),
@@ -21,15 +30,6 @@ def process_record(record: ArcWarcRecord):
         else None,
         content=extract_text_content(record.content_stream().read()),
     )
-
-
-def is_record_valid(record: ArcWarcRecord):
-    if (
-        record.rec_type == "response"
-        and record.http_headers.get_header("Content-Type") == "text/html"
-    ):
-        return True
-    return False
 
 
 def extract_text_content(content: bytes | None) -> RecordContentSchema | None:
