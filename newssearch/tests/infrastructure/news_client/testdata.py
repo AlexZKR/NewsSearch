@@ -1,5 +1,5 @@
 from newssearch.infrastructure.clients.news.enums import CCDataSet
-from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
+from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
 
 VALID_WARC_FILENAME = "crawl-data/CC-NEWS/2025/07/CC-NEWS-20250701004326-02814.warc.gz"
 INVALID_WARC_FILENAME = "rawl-dataa-CCf-NEWS/2025/01as/CC-fsadfNEWS-20250101020153"
@@ -12,8 +12,8 @@ INVLAID_WARC_PATHS_URL = (
 )
 
 
-def get_expected_warc_filename_schema() -> WarcPathSchema:
-    return WarcPathSchema(
+def get_expected_warc_filename_schema() -> WarcFileSchema:
+    return WarcFileSchema(
         filepath=VALID_WARC_FILENAME,
         dataset=CCDataSet.CCNEWS,
         year="2025",

@@ -10,7 +10,7 @@ from newssearch.infrastructure.clients.news.exceptions import (
     FileNotFound,
     NewsClientError,
 )
-from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
+from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
 from newssearch.infrastructure.transport.exceptions import BaseTransportException
 from newssearch.infrastructure.transport.requests_transport import (
     BaseHTTPTransport,
@@ -42,9 +42,9 @@ class NewsClient:
         self.transport = transport
         self.settings = settings
 
-    def download_warc(self, file: WarcPathSchema, pos: int) -> Iterator[bytes]:
+    def get_warc_file(self, file: WarcFileSchema, pos: int) -> Iterator[bytes]:
         """Download one WARC file."""
-        url = self.__get_file_url(file)
+        url = self.__get_warc_file_url(file)
         content_len, iterator = self._try_stream_request(
             data=HTTPRequestData(method=HTTPMethod.GET, url=url)
         )
@@ -57,7 +57,7 @@ class NewsClient:
 
     def get_paths_file(self, year_month: date) -> WarcPathsFile:
         """Download file which contains WARC filepaths"""
-        url = self.__get_paths_url(year_month)
+        url = self.__get_paths_file_url(year_month)
         schema = WarcPathsFile.parse_warc_paths_url(url)
 
         response = self._try_make_request(
@@ -70,15 +70,12 @@ class NewsClient:
 
         return schema
 
-    def __get_paths_url(self, year_month: date) -> str:
+    def __get_paths_file_url(self, year_month: date) -> str:
         return self.settings.paths_url.format(
             yyyy=year_month.strftime("%Y"), mm=year_month.strftime("%m")
         )
 
-    def prepare_urls(self, files: list[WarcPathSchema]) -> list[str]:
-        return [self.__get_file_url(f) for f in files]
-
-    def __get_file_url(self, file: WarcPathSchema) -> str:
+    def __get_warc_file_url(self, file: WarcFileSchema) -> str:
         return self.settings.file_url.format(
             yyyy=file.year,
             mm=file.month,

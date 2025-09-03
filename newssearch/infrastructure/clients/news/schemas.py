@@ -16,7 +16,7 @@ class WARCInputSchema(BaseModel):
     pass
 
 
-class WarcPathSchema(BaseModel):
+class WarcFileSchema(BaseModel):
     """WARC filename, parsed from WarcPathsFile
 
     Example of one filename:
@@ -71,7 +71,7 @@ class WarcPathsFile(BaseModel):
     dataset: CCDataSet
     year: str
     month: str
-    filepaths: list[WarcPathSchema] = Field(default_factory=list)
+    filepaths: list[WarcFileSchema] = Field(default_factory=list)
 
     @classmethod
     def parse_warc_paths_url(cls, url: str):
@@ -91,7 +91,7 @@ class WarcPathsFile(BaseModel):
         """Fill filepaths field, filtering out invalid paths"""
         parsed_paths = []
         for filepath in filepaths:
-            parsed = WarcPathSchema.parse_warc_path(filepath)
+            parsed = WarcFileSchema.parse_warc_path(filepath)
             if parsed is not None:
                 parsed_paths.append(parsed)
 

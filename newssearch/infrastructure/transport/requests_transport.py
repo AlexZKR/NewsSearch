@@ -54,8 +54,15 @@ class BaseHTTPTransport(AbstractHTTPTransport):
             raise self._handle_requests_exception(exc)
 
     def _prepare_request(self, data: HTTPRequestData) -> requests.Request:
+        common_headers = {"user-agent": self.settings.user_agent}
+
         return requests.Request(
-            method=data.method, url=data.url, headers=data.headers, params=data.params
+            method=data.method,
+            url=data.url,
+            headers=common_headers.update(data.headers)
+            if data.headers
+            else common_headers,
+            params=data.params,
         )
 
     def _handle_response(self, response: requests.Response) -> ResponseContent:

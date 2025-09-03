@@ -13,7 +13,7 @@ from warcio.recordloader import ArcWarcRecord
 from newssearch.config.settings import NewsETLSettings
 from newssearch.infrastructure.clients.news.exceptions import FileNotFound
 from newssearch.infrastructure.clients.news.news_client import NewsClient
-from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
+from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
 from newssearch.tasks.news_etl.schemas import RecordContentSchema, WARCRecordSchema
 from newssearch.tasks.news_etl.utils import (
     extract_top_level_domain,
@@ -34,7 +34,7 @@ class NewsETL:
         self.__paths_files: dict[str, WarcPathsFile] = {}
         self.settings = settings
 
-    def run(self, files: list[WarcPathSchema]):
+    def run(self, files: list[WarcFileSchema]):
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.settings.max_workers
         ) as executor:
@@ -50,8 +50,8 @@ class NewsETL:
             except Exception as e:
                 logger.error(f"Error processing {file.id}: {e}")
 
-    def process_file(self, file: WarcPathSchema, position: int):
-        content_iterator = self.client.download_warc(file, position)
+    def process_file(self, file: WarcFileSchema, position: int):
+        content_iterator = self.client.get_warc_file(file, position)
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             file_size = write_tmp_file(content_iterator, temp_file)
             try:
@@ -63,7 +63,7 @@ class NewsETL:
                 os.unlink(temp_file.name)
 
     def transform_warc(
-        self, tmp_filepath: str, file: WarcPathSchema, pos: int, file_size: int
+        self, tmp_filepath: str, file: WarcFileSchema, pos: int, file_size: int
     ) -> list[WARCRecordSchema]:
         records = []
         with open(tmp_filepath, "rb") as f:

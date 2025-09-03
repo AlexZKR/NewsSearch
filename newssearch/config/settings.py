@@ -19,6 +19,8 @@ class UvicornSettings(BaseSettings):
 
 
 class HTTPTransportSettings(BaseSettings):
+    user_agent: str = "NewsSearch/1.0 pet-project"
+
     max_retries: int = 3
     backoff_factor: float = 0.1
     max_backoff: int = 120
@@ -29,8 +31,6 @@ class HTTPTransportSettings(BaseSettings):
 
 
 class NewsClientSettings(BaseSettings):
-    user_agent: str = "NewsSearch/1.0 pet-project"
-
     base_url: str = "http://data.commoncrawl.org/crawl-data/CC-NEWS"
     file_url_path: str = "/{yyyy}/{mm}/CC-NEWS-{timestamp}-{id}.warc.gz"
     paths_url_path: str = "/{yyyy}/{mm}/warc.paths.gz"

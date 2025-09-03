@@ -1,5 +1,5 @@
 from newssearch.infrastructure.clients.news.enums import CCDataSet
-from newssearch.infrastructure.clients.news.schemas import WarcPathSchema, WarcPathsFile
+from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
 from newssearch.tests.infrastructure.news_client.testdata import (
     INVALID_WARC_FILENAME,
     VALID_WARC_FILENAME,
@@ -15,13 +15,13 @@ def get_expected_paths_schema() -> WarcPathsFile:
 
 
 def test_warc_file_ok():
-    file = WarcPathSchema.parse_warc_path(filepath=VALID_WARC_FILENAME)
+    file = WarcFileSchema.parse_warc_path(filepath=VALID_WARC_FILENAME)
     assert file == get_expected_warc_filename_schema()
     assert str(file) == "2025/07 - 20250701004326 - 02814"
 
 
 def test_warc_file_fail():
-    assert WarcPathSchema.parse_warc_path(filepath=INVALID_WARC_FILENAME) is None
+    assert WarcFileSchema.parse_warc_path(filepath=INVALID_WARC_FILENAME) is None
 
 
 def test_paths_file_ok():
