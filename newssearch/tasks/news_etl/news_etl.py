@@ -1,25 +1,24 @@
 import concurrent
 import concurrent.futures
-import json
 import os
 import tempfile
 from datetime import date
 from logging import getLogger
 
-import trafilatura
 from warcio.archiveiterator import ArchiveIterator
-from warcio.recordloader import ArcWarcRecord
 
 from newssearch.config.settings import NewsETLSettings
 from newssearch.infrastructure.clients.news.exceptions import FileNotFound
 from newssearch.infrastructure.clients.news.news_client import NewsClient
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
-from newssearch.tasks.news_etl.schemas import RecordContentSchema, WARCRecordSchema
-from newssearch.tasks.news_etl.utils import (
-    extract_top_level_domain,
+from newssearch.tasks.news_etl.schemas import WARCRecordSchema
+from newssearch.tasks.news_etl.utils.record_factory import (
+    is_record_valid,
+    process_record,
+)
+from newssearch.tasks.news_etl.utils.utils import (
     format_year_month,
     get_tqdm,
-    is_record_valid,
     write_tmp_file,
 )
 
@@ -73,7 +72,7 @@ class NewsETL:
                     pbar.update(current_pos - pbar.n)
                     try:
                         if is_record_valid(record):
-                            records.append(self._process_record(record))
+                            records.append(process_record(record))
                     except Exception as exc:
                         logger.warning(f"Error processing record {record}: {exc}")
         return records
@@ -89,43 +88,3 @@ class NewsETL:
         except FileNotFound:
             logger.warning(f"Paths file for {ym} not found!")
             return None
-
-    def _process_record(self, record: ArcWarcRecord):
-        return WARCRecordSchema(
-            id=record.rec_headers.get_header("WARC-Record-ID"),
-            url=extract_top_level_domain(
-                record.rec_headers.get_header("WARC-Target-URI")
-            ),
-            date=record.rec_headers.get_header("WARC-Date"),
-            content_length=record.rec_headers.get_header("Content-Length"),
-            mime_type=record.http_headers.get_header("Content-Type")
-            if record.http_headers
-            else None,
-            content=self._extract_text_content(record.content_stream().read()),
-        )
-
-    def _extract_text_content(
-        self, content: bytes | None
-    ) -> RecordContentSchema | None:
-        if not content:
-            return None
-        extracted = trafilatura.extract(
-            content,
-            include_comments=False,
-            deduplicate=True,
-            output_format="json",
-            with_metadata=True,
-        )
-        if extracted:
-            root = json.loads(extracted)
-            return RecordContentSchema(
-                title=root.get("title"),
-                excerpt=root.get("excerpt"),
-                hostname=root.get("hostname"),
-                tags=root.get("tags"),
-                categories=root.get("categories"),
-                text=root.get("raw_text"),
-                date=root.get("date"),
-                date_crawled=root.get("filedate"),
-            )
-        return None

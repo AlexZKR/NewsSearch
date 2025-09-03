@@ -8,10 +8,10 @@ from newssearch.config import settings
 from newssearch.infrastructure.clients.news.news_client import NewsClient
 from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 from newssearch.tasks.news_etl.news_etl import NewsETL
-from newssearch.tasks.news_etl.utils import format_year_month
+from newssearch.tasks.news_etl.utils.utils import format_year_month
 
 
-def main(  # noqa: PLR0915
+def main(
     year_month: Annotated[
         datetime, typer.Argument(formats=[settings.NEWS_ETL_SETTINGS.date_format])
     ],

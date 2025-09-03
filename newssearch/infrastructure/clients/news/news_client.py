@@ -17,7 +17,7 @@ from newssearch.infrastructure.transport.requests_transport import (
     HTTPRequestData,
 )
 from newssearch.infrastructure.transport.schemas import ResponseContent
-from newssearch.tasks.news_etl.utils import get_tqdm
+from newssearch.tasks.news_etl.utils.utils import get_tqdm
 
 logger = getLogger(__name__)
 
