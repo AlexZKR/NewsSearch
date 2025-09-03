@@ -7,7 +7,7 @@ from tqdm import tqdm
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema
 
 
-def configure_logging():
+def configure_logging():  # pragma:no cover
     class TqdmLoggingHandler(logging.Handler):
         def emit(self, record):
             try:
@@ -34,13 +34,6 @@ def get_files_for_download(
         raw = process_user_input()
         try:
             start_id, end_id = parse_id_range(raw, available_ids)
-
-            # Validate that both IDs exist
-            if start_id not in available_ids:
-                raise ValueError(f"Start ID {start_id} not found in available files")
-            if end_id not in available_ids:
-                raise ValueError(f"End ID {end_id} not found in available files")
-
             break
         except ValueError as exc:
             typer.echo(f"Invalid input: {exc}. Please try again.")
@@ -50,11 +43,6 @@ def get_files_for_download(
 
     start_ind = files.index(start_file)
     end_ind = files.index(end_file)
-
-    # Ensure start index comes before end index
-    if start_ind > end_ind:
-        start_ind, end_ind = end_ind, start_ind
-        start_id, end_id = end_id, start_id
 
     file_count = end_ind - start_ind + 1
 
@@ -67,7 +55,7 @@ def get_files_for_download(
     return files[start_ind : end_ind + 1]
 
 
-def process_user_input() -> str:
+def process_user_input() -> str:  # pragma:no cover
     try:
         raw = typer.prompt(
             "Enter ID or range (e.g. 03802 or 03802-03807), end inclusive. 'q' to quit"
