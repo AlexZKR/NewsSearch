@@ -8,4 +8,6 @@ tqdm
 warcio
 trafilatura[all]
 lxml_html_clean
+httpx
+
 -r requirements-dev.txt
