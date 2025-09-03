@@ -4,11 +4,11 @@ from newssearch.infrastructure.transport.schemas import ResponseContent
 class BaseTransportException(Exception):
     def __init__(
         self,
-        status: int | None = None,
+        status_code: int | None = None,
         response: ResponseContent | None = None,
         message: str | None = None,
     ):
-        self.status_code = status
+        self.status_code = status_code
         self.response = response
         self.message = message
 

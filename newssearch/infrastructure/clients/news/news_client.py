@@ -42,7 +42,7 @@ class NewsClient:
         self.transport = transport
         self.settings = settings
 
-    def get_warc_file(self, file: WarcFileSchema, pos: int) -> Iterator[bytes]:
+    def get_warc_file(self, file: WarcFileSchema, pos: int = 0) -> Iterator[bytes]:
         """Download one WARC file."""
         url = self.__get_warc_file_url(file)
         content_len, iterator = self._try_stream_request(
@@ -51,9 +51,8 @@ class NewsClient:
 
         with get_tqdm(msg=f"Downloading {file.id}", total=content_len, pos=pos) as pbar:
             for chunk in iterator:
-                if chunk:
-                    yield chunk
-                    pbar.update(len(chunk))
+                yield chunk
+                pbar.update(len(chunk))
 
     def get_paths_file(self, year_month: date) -> WarcPathsFile:
         """Download file which contains WARC filepaths"""
@@ -95,4 +94,6 @@ class NewsClient:
         try:
             return self.transport.stream(data)
         except BaseTransportException as exc:
+            if exc.status_code == HTTPStatus.NOT_FOUND:
+                raise FileNotFound
             raise NewsClientError(exc) from exc

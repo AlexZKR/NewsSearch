@@ -80,7 +80,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         if exc.response is not None:
             content = self._parse_content(exc.response)
             return ClientError(
-                status=exc.response.status_code,
+                status_code=exc.response.status_code,
                 response=content,
                 message=exc.response.reason,
             )
@@ -94,7 +94,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         exception_class = (
             ServerError if status >= HTTPStatus.INTERNAL_SERVER_ERROR else ClientError
         )
-        return exception_class(status=status, response=content)
+        return exception_class(status_code=status, response=content)
 
     def _parse_content(self, response: requests.Response) -> str | Any:
         match response.headers.get("content-type"):
