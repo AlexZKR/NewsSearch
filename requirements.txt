@@ -9,5 +9,7 @@ warcio
 trafilatura[all]
 lxml_html_clean
 httpx
+prometheus-client
+backoff
 
 -r requirements-dev.txt

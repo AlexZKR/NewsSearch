@@ -18,7 +18,10 @@ format:
 	ruff format .
 
 start:
-	docker compose up --build
+	docker compose up --build -d
+
+stop:
+	docker compose down
 
 # Testing
 check: lint tests
