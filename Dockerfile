@@ -1,4 +1,4 @@
-FROM python:3.11.7
+FROM python:3.13.7
 
 COPY requirements*.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache \
