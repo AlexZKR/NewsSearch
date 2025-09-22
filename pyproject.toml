@@ -19,9 +19,10 @@ optional-dependencies.dev = { file = ["requirements-dev.txt"] }
 
 
 [tool.pytest.ini_options]
+addopts = "-q"
 log_cli = true
 log_cli_level = "DEBUG"
-asyncio_mode = "auto"
+asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = "newssearch"
 

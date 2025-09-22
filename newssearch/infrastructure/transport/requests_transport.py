@@ -14,6 +14,7 @@ from newssearch.infrastructure.transport.base import AbstractSyncHTTPTransport
 from newssearch.infrastructure.transport.exceptions import (
     BaseTransportException,
     ClientError,
+    ConnectionTransportError,
     ServerError,
 )
 from newssearch.infrastructure.transport.schemas import (
@@ -85,13 +86,13 @@ class RequestsHTTPTransport(AbstractSyncHTTPTransport):  # pragma: nocover
         """Handle retry exception, raised in request or stream func"""
         if exc.response is not None:
             content = self._parse_content(exc.response)
-            return ClientError(
+            return ConnectionTransportError(
                 status_code=exc.response.status_code,
                 response=content,
                 message=exc.response.reason,
             )
         else:
-            return ClientError(message=str(exc))
+            return ConnectionTransportError(message=str(exc))
 
     def _handle_HTTP_error(
         self, exc: requests.HTTPError, content: ResponseContent

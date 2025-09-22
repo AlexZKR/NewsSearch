@@ -1,14 +1,16 @@
 import pytest
 import requests
 
-from newssearch.infrastructure.transport.exceptions import ClientError
+from newssearch.infrastructure.transport.exceptions import (
+    ConnectionTransportError,
+)
 from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
 from newssearch.infrastructure.transport.schemas import ContentTypeEnum, HTTPRequestData
 from newssearch.tests.infrastructure.transport.conftest import (
     EXP_RESPONSE_TXT,
-    get_exp_response,
     get_request_data_text,
 )
+from newssearch.tests.infrastructure.transport.requests.conftest import get_exp_response
 
 
 @pytest.mark.parametrize(
@@ -29,13 +31,13 @@ from newssearch.tests.infrastructure.transport.conftest import (
     indirect=["mock_session"],
 )
 def test_stream_ok(
-    transport: RequestsHTTPTransport,
+    transport_requests: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_response,
 ) -> None:
     resp = b""
-    size, iterator = transport.stream(request_data)
+    size, iterator = transport_requests.stream(request_data)
     for r in iterator:
         resp += r
     assert resp == exp_response
@@ -48,7 +50,7 @@ def test_stream_ok(
         pytest.param(
             {"raises": requests.exceptions.RetryError},
             get_request_data_text(),
-            ClientError,
+            ConnectionTransportError,
             "No msg",
             id="retry error, without resp",
         ),
@@ -63,7 +65,7 @@ def test_stream_ok(
                 )
             },
             get_request_data_text(),
-            ClientError,
+            ConnectionTransportError,
             b"test",
             id="retry error, with resp",
         ),
@@ -71,7 +73,7 @@ def test_stream_ok(
     indirect=["mock_session"],
 )
 def test_stream_retry_exc(
-    transport: RequestsHTTPTransport,
+    transport_requests: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,
@@ -79,7 +81,7 @@ def test_stream_retry_exc(
 ) -> None:
     with pytest.raises(exp_exception) as exc:
         result = b""
-        size, iterator = transport.stream(request_data)
+        size, iterator = transport_requests.stream(request_data)
         for r in iterator:
             result += r
     if resp := exc.value.response:
