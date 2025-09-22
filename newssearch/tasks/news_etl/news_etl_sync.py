@@ -7,8 +7,9 @@ from logging import getLogger
 from warcio.archiveiterator import ArchiveIterator
 
 from newssearch.config.settings import NewsETLSettings
-from newssearch.infrastructure.clients.news.news_client import NewsClient
+from newssearch.infrastructure.clients.news.news_client_sync import NewsClientSync
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
+from newssearch.tasks.news_etl.base import BaseNewsETL
 from newssearch.tasks.news_etl.schemas import WARCRecordSchema
 from newssearch.tasks.news_etl.utils.record_factory import (
     is_record_valid,
@@ -22,9 +23,19 @@ from newssearch.tasks.news_etl.utils.utils import (
 logger = getLogger(__name__)
 
 
-class NewsETL:
+class NewsETLOneThreaded(BaseNewsETL):
+    """Can process multiple files. One file is processed in it's own thread.
+
+    Work done in one thread:
+    1. Download a WARC file (1 GB) to a tmpfile;
+    2. Parse this file with warcio and trafilatura, extract text;
+    3. Load into ElasticSearch.
+
+    tqdm and typer for UI, run with `python cli/news_cli/news_sync.py`
+    """
+
     def __init__(
-        self, news_client: NewsClient, settings: NewsETLSettings = NewsETLSettings()
+        self, news_client: NewsClientSync, settings: NewsETLSettings = NewsETLSettings()
     ) -> None:
         self.client = news_client
         self.__paths_files: dict[str, WarcPathsFile] = {}

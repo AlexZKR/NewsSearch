@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from newssearch.infrastructure.transport.schemas import HTTPRequestData, ResponseContent
 
 
-class AbstractHTTPTransport(ABC):
+class AbstractSyncHTTPTransport(ABC):
     @abstractmethod
     def request(self, data: HTTPRequestData) -> ResponseContent: ...
 

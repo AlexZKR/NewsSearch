@@ -19,7 +19,13 @@ class BaseTransportException(Exception):
         return f"<{self.__class__.__name__}; HTTP Exception. Code: {self.status_code}; Response: {self.response}; Message: {self.message}>"
 
 
-class ClientError(BaseTransportException): ...
+class ConnectionTransportError(BaseTransportException):
+    """All connection errors. We do not have any response from server"""
 
 
-class ServerError(BaseTransportException): ...
+class ClientError(BaseTransportException):
+    """HTTP errors with 400 <= status < 500."""
+
+
+class ServerError(BaseTransportException):
+    """HTTP errors with status >= 500."""

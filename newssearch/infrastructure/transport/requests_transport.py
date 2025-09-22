@@ -5,10 +5,12 @@ from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter
-from urllib3 import Retry
 
-from newssearch.config.settings import HTTPTransportSettings
-from newssearch.infrastructure.transport.base import AbstractHTTPTransport
+from newssearch.config.settings import (
+    HTTPTransportSettings,
+    RetryBackoffSettings,
+)
+from newssearch.infrastructure.transport.base import AbstractSyncHTTPTransport
 from newssearch.infrastructure.transport.exceptions import (
     BaseTransportException,
     ClientError,
@@ -19,17 +21,21 @@ from newssearch.infrastructure.transport.schemas import (
     HTTPRequestData,
     ResponseContent,
 )
+from newssearch.infrastructure.transport.utils import get_retry
 
 logger = getLogger(__name__)
 
 
-class BaseHTTPTransport(AbstractHTTPTransport):
+class RequestsHTTPTransport(AbstractSyncHTTPTransport):  # pragma: nocover
     """Based on requests, for sync calls. Has retry, back-off support"""
 
     def __init__(
-        self, settings: HTTPTransportSettings = HTTPTransportSettings()
+        self,
+        retry_settings: RetryBackoffSettings = RetryBackoffSettings(),
+        client_settings: HTTPTransportSettings = HTTPTransportSettings(),
     ) -> None:
-        self.settings = settings
+        self.retry_settings = retry_settings
+        self.client_settings = client_settings
         self.session: requests.Session | None = None
 
     def stream(self, data: HTTPRequestData) -> tuple[int, Iterator[bytes]]:
@@ -37,7 +43,9 @@ class BaseHTTPTransport(AbstractHTTPTransport):
             with self._session as s:
                 request = self._prepare_request(data).prepare()
                 response = s.send(request, stream=True)
-                iterator = response.iter_content(chunk_size=self.settings.chunk_size)
+                iterator = response.iter_content(
+                    chunk_size=self.client_settings.chunk_size
+                )
                 content_len = int(response.headers.get("content-length", 0))
                 return content_len, iterator
         except requests.RequestException as exc:
@@ -54,14 +62,12 @@ class BaseHTTPTransport(AbstractHTTPTransport):
             raise self._handle_requests_exception(exc)
 
     def _prepare_request(self, data: HTTPRequestData) -> requests.Request:
-        common_headers = {"user-agent": self.settings.user_agent}
-
         return requests.Request(
             method=data.method,
             url=data.url,
-            headers=common_headers.update(data.headers)
+            headers=self.client_settings.common_headers.update(data.headers)
             if data.headers
-            else common_headers,
+            else self.client_settings.common_headers,
             params=data.params,
         )
 
@@ -111,16 +117,7 @@ class BaseHTTPTransport(AbstractHTTPTransport):
         if self.session:  # pragma: nocover
             return self.session
 
-        retry_obj: Retry = Retry(
-            total=self.settings.max_retries,
-            allowed_methods=self.settings.allowed_methods,
-            status_forcelist=self.settings.status_forcelist,
-            backoff_factor=self.settings.backoff_factor,
-            backoff_max=self.settings.max_backoff,
-            raise_on_redirect=True,
-            raise_on_status=True,
-        )
-        adapter = HTTPAdapter(max_retries=retry_obj)
+        adapter = HTTPAdapter(max_retries=get_retry(self.retry_settings))
         s = requests.Session()
         s.mount("https://", adapter)
 

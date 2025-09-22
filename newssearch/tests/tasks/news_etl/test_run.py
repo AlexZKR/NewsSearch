@@ -3,7 +3,7 @@ import concurrent.futures as cf
 from pytest import LogCaptureFixture, MonkeyPatch
 
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema
-from newssearch.tasks.news_etl.news_etl import NewsETL
+from newssearch.tasks.news_etl.news_etl_sync import NewsETLOneThreaded
 from newssearch.tests.tasks.news_etl.testdata import make_warc_file
 
 
@@ -36,18 +36,20 @@ def _as_completed(iterable_of_futures):
 def test_run_calls_process_file_and_logs_success(
     monkeypatch: MonkeyPatch,
     caplog: LogCaptureFixture,
-    etl: NewsETL,
+    etl: NewsETLOneThreaded,
 ):
-    ne_mod = __import__("newssearch.tasks.news_etl.news_etl", fromlist=["*"])
+    ne_mod = __import__("newssearch.tasks.news_etl.news_etl_sync", fromlist=["*"])
     monkeypatch.setattr(ne_mod.concurrent.futures, "ThreadPoolExecutor", DummyExecutor)
     monkeypatch.setattr(ne_mod.concurrent.futures, "as_completed", _as_completed)
 
     called: list[tuple[str, int]] = []
 
-    def fake_process_file(self: NewsETL, file: WarcFileSchema, position: int) -> None:
+    def fake_process_file(
+        self: NewsETLOneThreaded, file: WarcFileSchema, position: int
+    ) -> None:
         called.append((file.id, position))
 
-    monkeypatch.setattr(NewsETL, "process_file", fake_process_file)
+    monkeypatch.setattr(NewsETLOneThreaded, "process_file", fake_process_file)
 
     files = [make_warc_file("00001"), make_warc_file("00002")]
 
@@ -63,15 +65,17 @@ def test_run_calls_process_file_and_logs_success(
 
 
 def test_run_logs_error_when_process_file_raises(monkeypatch, caplog, etl):
-    ne_mod = __import__("newssearch.tasks.news_etl.news_etl", fromlist=["*"])
+    ne_mod = __import__("newssearch.tasks.news_etl.news_etl_sync", fromlist=["*"])
     monkeypatch.setattr(ne_mod.concurrent.futures, "ThreadPoolExecutor", DummyExecutor)
     monkeypatch.setattr(ne_mod.concurrent.futures, "as_completed", _as_completed)
 
-    def fake_process_file(self: NewsETL, file: WarcFileSchema, position: int) -> None:
+    def fake_process_file(
+        self: NewsETLOneThreaded, file: WarcFileSchema, position: int
+    ) -> None:
         if file.id == "00002":
             raise RuntimeError("boom")
 
-    monkeypatch.setattr(NewsETL, "process_file", fake_process_file)
+    monkeypatch.setattr(NewsETLOneThreaded, "process_file", fake_process_file)
 
     files = [make_warc_file("00001"), make_warc_file("00002"), make_warc_file("00003")]
 

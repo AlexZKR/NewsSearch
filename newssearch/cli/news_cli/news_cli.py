@@ -3,18 +3,23 @@ from typing import Annotated
 
 import typer
 
-from newssearch.cli.news_cli.utils import configure_logging, get_files_for_download
+from newssearch.cli.news_cli.utils import (
+    configure_logging,
+    etl_factory,
+    get_files_for_download,
+)
 from newssearch.config import settings
-from newssearch.infrastructure.clients.news.news_client import NewsClient
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
-from newssearch.tasks.news_etl.news_etl import NewsETL
+from newssearch.infrastructure.clients.news.news_client_sync import NewsClientSync
+from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
+from newssearch.tasks.news_etl.enums import ETLType
 from newssearch.tasks.news_etl.utils.utils import format_year_month
 
 
 def main(
     year_month: Annotated[
-        datetime, typer.Argument(formats=[settings.NEWS_ETL_SETTINGS.date_format])
+        datetime, typer.Argument(..., formats=[settings.NEWS_ETL_SETTINGS.date_format])
     ],
+    type: Annotated[ETLType, typer.Argument()] = ETLType.ONE_THREADED,
 ):
     """Download a file from CC-NEWS dataset
 
@@ -23,15 +28,13 @@ def main(
     """
     configure_logging()
 
-    transport = BaseHTTPTransport()
-    client = NewsClient(transport)
-    ETL = NewsETL(client)
+    client = NewsClientSync(RequestsHTTPTransport())
     typer.echo(
         f"This command lets you load WARC files from CC-NEWS dataset into ElasticSearch. \
         \n\nYou have entered year and month: {format_year_month(date=year_month)} \
         \n\nNow the app will query CC-NEWS to see, if any news are available for this date.\n"
     )
-    paths_file = ETL.client.get_paths_file(year_month)
+    paths_file = client.get_paths_file(year_month)
     if not paths_file:
         typer.echo("Try once again with another date!")
         typer.Exit(-1)
@@ -46,7 +49,7 @@ def main(
     typer.echo(f"Range of available IDs: {paths_file.id_range}")
 
     files = get_files_for_download(paths_file.filepaths)
-    ETL.run(files)
+    etl_factory(type).run(files)
 
 
 if __name__ == "__main__":

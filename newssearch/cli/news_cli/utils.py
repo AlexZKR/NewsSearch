@@ -4,7 +4,12 @@ import re
 import typer
 from tqdm import tqdm
 
+from newssearch.infrastructure.clients.news.news_client_sync import NewsClientSync
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema
+from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
+from newssearch.tasks.news_etl.base import BaseNewsETL
+from newssearch.tasks.news_etl.enums import ETLType
+from newssearch.tasks.news_etl.news_etl_sync import NewsETLOneThreaded
 
 
 def configure_logging():  # pragma:no cover
@@ -108,3 +113,13 @@ def parse_id_range(raw: str, available_ids: set[str]) -> tuple[str, str]:
 
     # return zero-padded strings matching existing ids format
     return str(start_i).zfill(width), str(end_i).zfill(width)
+
+
+def etl_factory(type: ETLType) -> BaseNewsETL:
+    transport_requests = RequestsHTTPTransport()
+    client_sync = NewsClientSync(transport_requests)
+    match type:
+        case ETLType.ONE_THREADED:
+            return NewsETLOneThreaded(client_sync)
+        case _:  # pragma: no cover
+            raise ValueError("ETLType not found")

@@ -19,15 +19,21 @@ class UvicornSettings(BaseSettings):
 
 
 class HTTPTransportSettings(BaseSettings):
+    chunk_size: int = 8192
     user_agent: str = "NewsSearch/1.0 pet-project"
+    default_timeout: int = 30
 
+    @property
+    def common_headers(self) -> dict[str, str]:
+        return {"user-agent": self.user_agent}
+
+
+class RetryBackoffSettings(BaseSettings):
     max_retries: int = 3
     backoff_factor: float = 0.1
     max_backoff: int = 120
     status_forcelist: list[int] = [413, 429, 502, 503, 504]
     allowed_methods: frozenset[str] = urllib3.Retry.DEFAULT_ALLOWED_METHODS
-    default_timeout: int = 30
-    chunk_size: int = 8192
 
 
 class NewsClientSettings(BaseSettings):
@@ -55,6 +61,6 @@ class NewsETLSettings(BaseSettings):
 
 class Settings(BaseSettings):
     UVICORN_SETTINGS: UvicornSettings = UvicornSettings()
-    HTTP_TRANSPORT_SETTINGS: HTTPTransportSettings = HTTPTransportSettings()
+    HTTP_TRANSPORT_SETTINGS: RetryBackoffSettings = RetryBackoffSettings()
     NEWS_CLIENT_SETTINGS: NewsClientSettings = NewsClientSettings()
     NEWS_ETL_SETTINGS: NewsETLSettings = NewsETLSettings()

@@ -1,13 +1,9 @@
 import json
 from http import HTTPMethod
 from io import BytesIO
-from unittest.mock import patch
 
-import pytest
 from requests import Response
 
-from newssearch.config.settings import HTTPTransportSettings
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 from newssearch.infrastructure.transport.schemas import ContentTypeEnum, HTTPRequestData
 
 EXP_RESPONSE_TXT = "test_text"
@@ -33,19 +29,3 @@ def get_exp_response(
     if content_type:
         r.headers["content-type"] = content_type.value
     return r
-
-
-@pytest.fixture()
-def transport() -> BaseHTTPTransport:
-    settings = HTTPTransportSettings(chunk_size=3)
-    return BaseHTTPTransport(settings=settings)
-
-
-@pytest.fixture()
-def mock_session(request: pytest.FixtureRequest):
-    if "returns" in request.param:
-        with patch("requests.Session.send", return_value=request.param["returns"]):
-            yield
-    if "raises" in request.param:
-        with patch("requests.Session.send", side_effect=request.param["raises"]):
-            yield

@@ -11,18 +11,16 @@ from newssearch.infrastructure.clients.news.exceptions import (
     NewsClientError,
 )
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema, WarcPathsFile
+from newssearch.infrastructure.transport.base import AbstractSyncHTTPTransport
 from newssearch.infrastructure.transport.exceptions import BaseTransportException
-from newssearch.infrastructure.transport.requests_transport import (
-    BaseHTTPTransport,
-    HTTPRequestData,
-)
+from newssearch.infrastructure.transport.requests_transport import HTTPRequestData
 from newssearch.infrastructure.transport.schemas import ResponseContent
 from newssearch.tasks.news_etl.utils.utils import get_tqdm
 
 logger = getLogger(__name__)
 
 
-class NewsClient:
+class NewsClientSync:
     """Gets data from CC-News dataset
 
     More info: https://data.commoncrawl.org/crawl-data/CC-NEWS/index.html
@@ -36,7 +34,7 @@ class NewsClient:
 
     def __init__(
         self,
-        transport: BaseHTTPTransport,
+        transport: AbstractSyncHTTPTransport,
         settings: NewsClientSettings = NewsClientSettings(),
     ):
         self.transport = transport

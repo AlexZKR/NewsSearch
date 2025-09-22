@@ -2,7 +2,7 @@ import pytest
 import requests
 
 from newssearch.infrastructure.transport.exceptions import ClientError
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
 from newssearch.infrastructure.transport.schemas import ContentTypeEnum, HTTPRequestData
 from newssearch.tests.infrastructure.transport.conftest import (
     EXP_RESPONSE_TXT,
@@ -29,7 +29,7 @@ from newssearch.tests.infrastructure.transport.conftest import (
     indirect=["mock_session"],
 )
 def test_stream_ok(
-    transport: BaseHTTPTransport,
+    transport: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_response,
@@ -59,7 +59,7 @@ def test_stream_ok(
                         content_type=ContentTypeEnum.binary_octet_stream,
                         content="test",
                         status_code=500,
-                    )
+                    )  # type: ignore
                 )
             },
             get_request_data_text(),
@@ -71,7 +71,7 @@ def test_stream_ok(
     indirect=["mock_session"],
 )
 def test_stream_retry_exc(
-    transport: BaseHTTPTransport,
+    transport: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,

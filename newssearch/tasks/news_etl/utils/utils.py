@@ -26,6 +26,10 @@ def get_tqdm(msg: str, total: int, pos: int = 0, unit: str = "B") -> tqdm:
 
 
 def format_year_month(date: datetime | date) -> str:
+    if not date:
+        raise ValueError(
+            "Provide datetime for year_month argument in YYYY/MM format (e.g., 2023/09)."
+        )
     if isinstance(date, datetime):
         return date.date().strftime(settings.NEWS_ETL_SETTINGS.date_format)
     return date.strftime(settings.NEWS_ETL_SETTINGS.date_format)

@@ -3,8 +3,7 @@ import tempfile
 
 import pytest
 
-import newssearch.tasks.news_etl.news_etl as ne_mod
-from newssearch.tasks.news_etl.news_etl import NewsETL
+import newssearch.tasks.news_etl.news_etl_sync as ne_mod
 from newssearch.tests.tasks.news_etl.dummy_helpers import DummyPbar
 from newssearch.tests.tasks.news_etl.testdata import get_dummy_records
 
@@ -25,7 +24,7 @@ def tmp_file_path():
 
 @pytest.fixture()
 def etl():
-    return NewsETL(news_client=None)  # type: ignore # client not used in transform_warc
+    return ne_mod.NewsETLOneThreaded(news_client=None)  # type: ignore # client not used in transform_warc
 
 
 @pytest.fixture()

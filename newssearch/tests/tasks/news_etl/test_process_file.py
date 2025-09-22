@@ -13,7 +13,7 @@ def test_process_file_runs(monkeypatch, etl):
 
     # fake write_tmp_file
     monkeypatch.setattr(
-        "newssearch.tasks.news_etl.news_etl.write_tmp_file", lambda it, f: 123
+        "newssearch.tasks.news_etl.news_etl_sync.write_tmp_file", lambda it, f: 123
     )
 
     # fake transform_warc
@@ -29,7 +29,7 @@ def test_process_file_cleans_tempfile(monkeypatch, etl):
         etl, "client", type("C", (), {"get_warc_file": lambda self, f, p: fake_iter})()
     )
     monkeypatch.setattr(
-        "newssearch.tasks.news_etl.news_etl.write_tmp_file", lambda it, f: 1
+        "newssearch.tasks.news_etl.news_etl_sync.write_tmp_file", lambda it, f: 1
     )
     monkeypatch.setattr(etl, "transform_warc", lambda *a, **k: [])
 

@@ -2,7 +2,7 @@ import pytest
 import requests
 
 from newssearch.infrastructure.transport.exceptions import ClientError, ServerError
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
 from newssearch.infrastructure.transport.schemas import ContentTypeEnum, HTTPRequestData
 from newssearch.tests.infrastructure.transport.conftest import (
     EXP_RESPONSE_JSON,
@@ -56,7 +56,7 @@ from newssearch.tests.infrastructure.transport.conftest import (
     indirect=["mock_session"],
 )
 def test_request_ok(
-    transport: BaseHTTPTransport,
+    transport: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_response,
@@ -98,7 +98,7 @@ def test_request_ok(
     indirect=["mock_session"],
 )
 def test_request_raise_for_status_exc(
-    transport: BaseHTTPTransport,
+    transport: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,
@@ -126,7 +126,7 @@ def test_request_raise_for_status_exc(
                         content_type=ContentTypeEnum.text_html,
                         content="test",
                         status_code=500,
-                    )
+                    )  # type: ignore
                 )
             },
             get_request_data_text(),
@@ -138,7 +138,7 @@ def test_request_raise_for_status_exc(
     indirect=["mock_session"],
 )
 def test_request_retry_exc(
-    transport: BaseHTTPTransport,
+    transport: RequestsHTTPTransport,
     mock_session,
     request_data: HTTPRequestData,
     exp_exception,

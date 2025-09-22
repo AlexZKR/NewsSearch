@@ -6,10 +6,10 @@ from newssearch.infrastructure.clients.news.exceptions import (
     FileNotFound,
     NewsClientError,
 )
-from newssearch.infrastructure.clients.news.news_client import NewsClient
+from newssearch.infrastructure.clients.news.news_client_sync import NewsClientSync
 from newssearch.infrastructure.clients.news.schemas import WarcFileSchema
+from newssearch.infrastructure.transport.base import AbstractSyncHTTPTransport
 from newssearch.infrastructure.transport.exceptions import ClientError
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
 from newssearch.tests.infrastructure.news_client.testdata import (
     get_expected_warc_filename_schema,
 )
@@ -27,7 +27,9 @@ from newssearch.tests.infrastructure.news_client.testdata import (
     indirect=["transport"],
 )
 def test_warc_file_ok(
-    news_client: NewsClient, transport: BaseHTTPTransport, file: WarcFileSchema
+    news_client: NewsClientSync,
+    transport: AbstractSyncHTTPTransport,
+    file: WarcFileSchema,
 ):
     content_iterator = news_client.get_warc_file(file=file)
     assert [chunk for chunk in content_iterator] == [b"123"]
@@ -60,8 +62,8 @@ def test_warc_file_ok(
     indirect=["transport"],
 )
 def test_warc_file_fail(
-    news_client: NewsClient,
-    transport: BaseHTTPTransport,
+    news_client: NewsClientSync,
+    transport: AbstractSyncHTTPTransport,
     exp_exception: type[NewsClientError],
     file: WarcFileSchema,
 ):

@@ -1,7 +1,6 @@
 from typing import Any
 
-import newssearch.tasks.news_etl.news_etl as ne_mod
-from newssearch.tasks.news_etl.news_etl import NewsETL
+import newssearch.tasks.news_etl.news_etl_sync as ne_mod
 from newssearch.tests.tasks.news_etl.dummy_helpers import DummyRecord
 from newssearch.tests.tasks.news_etl.testdata import make_warc_file
 
@@ -11,7 +10,7 @@ def test_transform_warc_processes_only_valid_records(
     tmp_file_path,
     mock_tqdm,
     mock_archive_iterator: list[DummyRecord],
-    etl: NewsETL,
+    etl: ne_mod.NewsETLOneThreaded,
 ):
     def fake_process(rec: Any):
         return f"processed-{rec.rec_headers.get_header('WARC-Record-ID')}"
@@ -31,7 +30,7 @@ def test_transform_warc_handles_processing_exceptions(  # noqa: PLR0913
     caplog,
     mock_tqdm,
     mock_archive_iterator: list[DummyRecord],
-    etl: NewsETL,
+    etl: ne_mod.NewsETLOneThreaded,
 ):
     # make process_record raise
     def raise_on_process(rec):

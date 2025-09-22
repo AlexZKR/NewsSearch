@@ -8,9 +8,9 @@ from newssearch.infrastructure.clients.news.exceptions import (
     FileNotFound,
     NewsClientError,
 )
-from newssearch.infrastructure.clients.news.news_client import NewsClient
+from newssearch.infrastructure.clients.news.news_client_sync import NewsClientSync
 from newssearch.infrastructure.transport.exceptions import ClientError
-from newssearch.infrastructure.transport.requests_transport import BaseHTTPTransport
+from newssearch.infrastructure.transport.requests_transport import RequestsHTTPTransport
 from newssearch.tests.infrastructure.news_client.testdata import (
     INVALID_WARC_FILENAME,
     VALID_WARC_FILENAME,
@@ -33,7 +33,7 @@ from newssearch.tests.infrastructure.news_client.testdata import (
     indirect=["transport"],
 )
 def test_paths_file_ok(
-    news_client: NewsClient, transport: BaseHTTPTransport, expected_length: int
+    news_client: NewsClientSync, transport: RequestsHTTPTransport, expected_length: int
 ):
     paths_file = news_client.get_paths_file(year_month=date(year=2025, month=7, day=1))
     assert paths_file.filepaths is not None
@@ -65,8 +65,8 @@ def test_paths_file_ok(
     indirect=["transport"],
 )
 def test_paths_file_fail(
-    news_client: NewsClient,
-    transport: BaseHTTPTransport,
+    news_client: NewsClientSync,
+    transport: RequestsHTTPTransport,
     exp_exception: type[NewsClientError],
 ):
     with pytest.raises(exp_exception):
