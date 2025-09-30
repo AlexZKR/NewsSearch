@@ -26,10 +26,9 @@ class NewsClientSync:
     More info: https://data.commoncrawl.org/crawl-data/CC-NEWS/index.html
 
     Short:
-        1) Separate dataset file names are stored in 'paths' file. So, get it
-        and store it near the client.
-        2) If 'paths' file is in place, scan it for the desired date.
-        3) If date is found then download the file.
+        1) Separate dataset file names are stored in 'paths' file;
+        2) Each row in paths file is a filename that must be append to donwload URL;
+        3) Each file in paths file is approx. 1 GB in size.
     """
 
     def __init__(
