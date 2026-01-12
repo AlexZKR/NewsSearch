@@ -10,7 +10,7 @@ from newssearch.tasks.news_etl.schemas import RecordContentSchema, WARCRecordSch
 logger = getLogger(__name__)
 
 
-def is_record_valid(record: ArcWarcRecord):
+def is_record_html(record: ArcWarcRecord):
     if (
         record.rec_type == "response"
         and record.http_headers.get_header("Content-Type") == "text/html"
@@ -19,7 +19,7 @@ def is_record_valid(record: ArcWarcRecord):
     return False
 
 
-def process_record(record: ArcWarcRecord):
+def parse_record(record: ArcWarcRecord):
     return WARCRecordSchema(
         id=record.rec_headers.get_header("WARC-Record-ID"),
         url=extract_top_level_domain(record.rec_headers.get_header("WARC-Target-URI")),

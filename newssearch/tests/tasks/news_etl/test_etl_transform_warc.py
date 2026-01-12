@@ -19,7 +19,7 @@ def test_transform_warc_processes_only_valid_records(
 
     file_schema = make_warc_file("00001")
     # file_size can be arbitrary; transform_warc will open the tmp file but ArchiveIterator won't read from it
-    result = etl.transform_warc(tmp_file_path, file_schema, pos=0, file_size=123)
+    result = etl.transform_stage(tmp_file_path, file_schema, pos=0, file_size=123)
 
     assert result == ["processed-id1", "processed-id3"]
 
@@ -42,7 +42,7 @@ def test_transform_warc_handles_processing_exceptions(  # noqa: PLR0913
     caplog.set_level("WARNING")
 
     file_schema = make_warc_file("00002")
-    result = etl.transform_warc(tmp_file_path, file_schema, pos=0, file_size=10)
+    result = etl.transform_stage(tmp_file_path, file_schema, pos=0, file_size=10)
 
     # exception should be caught and result should be empty
     assert result == []

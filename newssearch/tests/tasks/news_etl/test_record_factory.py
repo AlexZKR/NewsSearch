@@ -10,8 +10,8 @@ from newssearch.tasks.news_etl.schemas import RecordContentSchema, WARCRecordSch
 from newssearch.tasks.news_etl.utils.record_factory import (
     extract_text_content,
     extract_top_level_domain,
-    is_record_valid,
-    process_record,
+    is_record_html,
+    parse_record,
 )
 
 
@@ -29,13 +29,13 @@ def test_is_record_valid_true_and_false():
             self.http_headers = DummyHeaders(content_type)
 
     r_ok = cast(ArcWarcRecord, DummyRecord("response", "text/html"))
-    assert is_record_valid(r_ok) is True
+    assert is_record_html(r_ok) is True
 
     r_not_response = cast(ArcWarcRecord, DummyRecord("request", "text/html"))
-    assert is_record_valid(r_not_response) is False
+    assert is_record_html(r_not_response) is False
 
     r_not_html = cast(ArcWarcRecord, DummyRecord("response", "application/json"))
-    assert is_record_valid(r_not_html) is False
+    assert is_record_html(r_not_html) is False
 
 
 @pytest.mark.parametrize(
@@ -92,7 +92,7 @@ def test_process_record_with_valid_data():
             text="This is the full article text",
         )
 
-        result = process_record(mock_record)
+        result = parse_record(mock_record)
 
         assert isinstance(result, WARCRecordSchema)
         assert result.id == "record-123"
@@ -140,7 +140,7 @@ def test_process_record_with_missing_http_headers():
             title="Test Article", text="This is the full article text"
         )
 
-        result = process_record(mock_record)
+        result = parse_record(mock_record)
 
         assert result.mime_type is None
 

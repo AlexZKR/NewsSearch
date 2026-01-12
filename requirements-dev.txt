@@ -8,3 +8,5 @@ pre-commit
 
 types-requests
 types-tqdm
+psutil
+types-psutil

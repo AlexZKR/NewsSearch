@@ -1,6 +1,13 @@
 from datetime import datetime
+from enum import StrEnum, auto
 
 from pydantic import BaseModel
+
+
+class ETLStageEnum(StrEnum):
+    extract = auto()
+    transform = auto()
+    load = auto()
 
 
 class RecordContentSchema(BaseModel):

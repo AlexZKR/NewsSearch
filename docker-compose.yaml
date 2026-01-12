@@ -6,9 +6,9 @@ services:
     volumes:
       - ./newssearch:/home/newssearch
     ports:
-      - "8000:8000"
+      - "8001:8001"
     expose:
-      - 8000
+      - 8001
     env_file:
       - path: .env.defaults
         required: true
